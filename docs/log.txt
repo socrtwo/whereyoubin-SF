@@ -1,0 +1,8 @@
+/home/socrtwo/lib/python2.6/site-packages/pyPdf/pdf.py:52: DeprecationWarning: the sets module is deprecated
+  from sets import ImmutableSet
+/home/socrtwo/lib/python2.6/site-packages/pyPdf/generic.py:406: DeprecationWarning: object.__init__() takes no parameters
+  str.__init__(self, data)
+/home/socrtwo/lib/python2.6/site-packages/pyPdf/generic.py:216: DeprecationWarning: object.__init__() takes no parameters
+  int.__init__(self, value)
+/home/socrtwo/lib/python2.6/site-packages/pyPdf/pdf.py:163: DeprecationWarning: the md5 module is deprecated; use hashlib instead
+  import struct, md5

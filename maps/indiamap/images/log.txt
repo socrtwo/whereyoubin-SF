@@ -1,0 +1,1 @@
+sh: /sw/bin/python2.6: No such file or directory

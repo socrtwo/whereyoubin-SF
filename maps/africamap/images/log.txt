@@ -1,0 +1,4 @@
+/home/socrtwo/wherehaveibeen.info/posterScript/library.zip/pyPdf/pdf.py:52: DeprecationWarning: the sets module is deprecated
+/home/socrtwo/wherehaveibeen.info/posterScript/library.zip/pyPdf/generic.py:406: DeprecationWarning: object.__init__() takes no parameters
+/home/socrtwo/wherehaveibeen.info/posterScript/library.zip/pyPdf/generic.py:216: DeprecationWarning: object.__init__() takes no parameters
+/home/socrtwo/wherehaveibeen.info/posterScript/library.zip/pyPdf/pdf.py:163: DeprecationWarning: the md5 module is deprecated; use hashlib instead
