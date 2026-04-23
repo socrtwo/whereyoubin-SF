@@ -1,7 +1,7 @@
 {
     "name": "Travel Log — Where Have You Been?",
     "short_name": "Travel Log",
-    "description": "Log trips, photos, notes, and countries. Installable on Windows, macOS, Linux, Android, iOS, and Web.",
+    "description": "Log trips, photos, notes, and countries. Tick off visited places across 12 regional maps. Accounts sync across devices. Installable on Windows, macOS, Linux, Android, iOS, and Web.",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",
@@ -16,7 +16,8 @@
     ],
     "shortcuts": [
         { "name": "New Trip", "short_name": "New",   "url": "./new",   "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
-        { "name": "Map",      "short_name": "Map",   "url": "./map",   "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
+        { "name": "Maps",     "short_name": "Maps",  "url": "./maps",  "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
+        { "name": "World",    "short_name": "World", "url": "./map",   "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
         { "name": "Stats",    "short_name": "Stats", "url": "./stats", "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] }
     ]
 }

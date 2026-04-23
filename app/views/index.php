@@ -1,18 +1,44 @@
 <?php
-/** @var array $trips, array $stats */
+/** @var array $trips, array $stats, array $maps, array $counts */
 use TravelLog\View;
 use TravelLog\Countries;
 ?>
 <section class="hero">
     <div>
         <h1>Your journey, beautifully logged.</h1>
-        <p>Capture trips, photos, notes, and ratings — then relive them on an interactive world map.</p>
+        <p>Capture trips, photos, notes, and ratings. Tick off every country, state, and province you've visited across <strong>12 regional maps</strong>.</p>
     </div>
     <dl class="stat-strip">
         <div><dt>Trips</dt><dd><?= (int)$stats['trips'] ?></dd></div>
-        <div><dt>Countries</dt><dd><?= (int)$stats['countries'] ?></dd></div>
+        <div><dt>Countries logged</dt><dd><?= (int)$stats['countries'] ?></dd></div>
+        <div><dt>Maps in use</dt><dd><?= count(array_filter($counts)) ?></dd></div>
         <div><dt>Avg ★</dt><dd><?= number_format((float)$stats['ratingAvg'], 1) ?></dd></div>
     </dl>
+</section>
+
+<section class="maps-strip">
+    <div class="section-head">
+        <h2>Regional maps</h2>
+        <a href="<?= base_url('/maps') ?>" class="btn-ghost">See all →</a>
+    </div>
+    <ul class="mini-maps">
+        <?php foreach ($maps as $key => $m):
+            $have  = (int)($counts[$key] ?? 0);
+            $total = count($m['places']);
+            $pct   = $total ? (int) round($have / $total * 100) : 0;
+        ?>
+            <li>
+                <a href="<?= base_url('/maps/' . urlencode($key)) ?>" class="mini-map">
+                    <span class="mini-map__emoji"><?= View::e($m['emoji']) ?></span>
+                    <div>
+                        <strong><?= View::e($m['title']) ?></strong>
+                        <span class="mini-map__meta"><?= $have ?>/<?= $total ?> · <?= $pct ?>%</span>
+                    </div>
+                    <div class="bar bar--sm"><div class="bar-fill" style="width: <?= $pct ?>%"></div></div>
+                </a>
+            </li>
+        <?php endforeach; ?>
+    </ul>
 </section>
 
 <?php if (!$trips): ?>
@@ -22,6 +48,7 @@ use TravelLog\Countries;
         <a href="<?= base_url('/new') ?>" class="btn-primary">Log your first trip →</a>
     </div>
 <?php else: ?>
+    <h2 class="section-h2">Recent trips</h2>
     <div class="trip-grid">
         <?php foreach ($trips as $t): ?>
             <article class="trip-card">

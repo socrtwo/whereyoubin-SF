@@ -12,13 +12,49 @@ Both share a PHP 8.2+ codebase that's been deliberately hardened to survive futu
 ## Highlights
 
 - 📱 **Install natively on Windows, macOS, Linux, Android, iOS, and the Web** from one codebase (PWA).
+- 🌍 **Twelve regional maps** you can tick off: US states, Europe, Canadian provinces, Africa, Russian federal subjects, Chinese provinces, Indian states & UTs, South America, Caribbean, Asia, Australian states, Pacific islands.
+- 👤 **Accounts that follow you** — email + password sign-in so picks survive cleared cookies, new browsers/computers/phones, and IP changes. Guest picks are auto-claimed on signup.
 - 🧳 **Full travel log**: trips, photos, ratings, notes, dates, coordinates, country detection, CSV/JSON export.
 - 🗺️ **Interactive world map** of your trips (Leaflet + OpenStreetMap).
-- 📊 **Stats dashboard**: countries visited, trips per year, top countries, average rating.
+- 📊 **Stats dashboard**: per-map progress bars, trips per year, top countries, average rating.
 - 🎨 **Beautiful, responsive UI** with automatic dark mode.
 - 🔒 **Break-immune PHP 8.4 code** — no `mysql_*`, `eregi`, `magic_quotes`, short tags, or other removed APIs.
 - 💾 **Zero-config SQLite** by default; optional MySQL for shared hosting.
 - 🧪 **CI tests PHP 8.2 / 8.3 / 8.4** on every push.
+
+## Persistence across devices
+
+Every checked-off place and every trip is stored against your account. Sessions
+live in the `user_sessions` table, identified by a 256-bit random cookie token:
+
+| Scenario                                           | Still there after sign-in? |
+| -------------------------------------------------- | -------------------------- |
+| Cleared browser cookies / cache                    | ✅                         |
+| New browser on the same computer                   | ✅                         |
+| Brand-new computer or phone                        | ✅                         |
+| ISP rotated your IP address                        | ✅ (sessions never bind IP)|
+| Years between visits                               | ✅ (data kept forever)     |
+| You were a guest, then signed up                   | ✅ (guest picks auto-claimed) |
+
+Passwords are hashed with `PASSWORD_DEFAULT` (bcrypt today, self-upgrades if PHP
+picks a stronger algorithm later). All mutations are CSRF-protected.
+
+## Included regional maps
+
+| Map                | Subdivisions                           | Count |
+| ------------------ | -------------------------------------- | ----- |
+| United States      | States + DC                            | 51    |
+| Europe             | Sovereign countries                    | 45    |
+| Canada             | Provinces & territories                | 13    |
+| Africa             | Sovereign countries                    | 54    |
+| Russia             | Federal subjects                       | 83    |
+| China              | Provinces, regions & SARs              | 33    |
+| India              | States & Union Territories             | 36    |
+| South America      | Countries & territories                | 14    |
+| Caribbean          | Countries, territories & possessions   | 28    |
+| Asia               | Sovereign countries (incl. SARs)       | 51    |
+| Australia          | States & territories                   | 8     |
+| Pacific Islands    | Countries, territories & possessions   | 25    |
 
 ## Screenshots
 
