@@ -12,13 +12,51 @@ Both share a PHP 8.2+ codebase that's been deliberately hardened to survive futu
 ## Highlights
 
 - 📱 **Install natively on Windows, macOS, Linux, Android, iOS, and the Web** from one codebase (PWA).
+- 🌍 **Fourteen regional maps** you can tick off: US states, Europe, Canadian provinces, Africa, Russian federal subjects, Chinese provinces, Indian states & UTs, South America, Caribbean, Asia, Australian states, Pacific islands, Commonwealth of Nations, and UK counties/nations.
+- 👤 **Accounts that follow you** — email + password sign-in so picks survive cleared cookies, new browsers/computers/phones, and IP changes. Guest picks are auto-claimed on signup.
 - 🧳 **Full travel log**: trips, photos, ratings, notes, dates, coordinates, country detection, CSV/JSON export.
 - 🗺️ **Interactive world map** of your trips (Leaflet + OpenStreetMap).
-- 📊 **Stats dashboard**: countries visited, trips per year, top countries, average rating.
+- 📊 **Stats dashboard**: per-map progress bars, trips per year, top countries, average rating.
 - 🎨 **Beautiful, responsive UI** with automatic dark mode.
 - 🔒 **Break-immune PHP 8.4 code** — no `mysql_*`, `eregi`, `magic_quotes`, short tags, or other removed APIs.
 - 💾 **Zero-config SQLite** by default; optional MySQL for shared hosting.
 - 🧪 **CI tests PHP 8.2 / 8.3 / 8.4** on every push.
+
+## Persistence across devices
+
+Every checked-off place and every trip is stored against your account. Sessions
+live in the `user_sessions` table, identified by a 256-bit random cookie token:
+
+| Scenario                                           | Still there after sign-in? |
+| -------------------------------------------------- | -------------------------- |
+| Cleared browser cookies / cache                    | ✅                         |
+| New browser on the same computer                   | ✅                         |
+| Brand-new computer or phone                        | ✅                         |
+| ISP rotated your IP address                        | ✅ (sessions never bind IP)|
+| Years between visits                               | ✅ (data kept forever)     |
+| You were a guest, then signed up                   | ✅ (guest picks auto-claimed) |
+
+Passwords are hashed with `PASSWORD_DEFAULT` (bcrypt today, self-upgrades if PHP
+picks a stronger algorithm later). All mutations are CSRF-protected.
+
+## Included regional maps
+
+| Map                | Subdivisions                           | Count |
+| ------------------ | -------------------------------------- | ----- |
+| United States      | States + DC                            | 51    |
+| Europe             | Sovereign countries                    | 45    |
+| Canada             | Provinces & territories                | 13    |
+| Africa             | Sovereign countries                    | 54    |
+| Russia             | Federal subjects                       | 83    |
+| China              | Provinces, regions & SARs              | 33    |
+| India              | States & Union Territories             | 36    |
+| South America      | Countries & territories                | 14    |
+| Caribbean          | Countries, territories & possessions   | 28    |
+| Asia               | Sovereign countries (incl. SARs)       | 51    |
+| Australia          | States & territories                   | 8     |
+| Pacific Islands    | Countries, territories & possessions   | 25    |
+| Commonwealth       | All 56 member states                   | 56    |
+| United Kingdom     | Nations, regions & counties/council areas | 124 |
 
 ## Screenshots
 
@@ -51,6 +89,54 @@ php -S 127.0.0.1:8001
 - **PHP 8.2, 8.3, or 8.4** (tested in CI)
 - Extensions: `pdo`, `pdo_sqlite` *or* `pdo_mysql`, `mbstring`, `json`
 - Optional: `gd` + `curl` for the classic poster/map tools
+
+## Repository automation
+
+Two rules are always true here, enforced by a Claude Code harness hook,
+a GitHub Action, and a `CLAUDE.md` policy (details in [`CLAUDE.md`](CLAUDE.md)):
+
+- **`README.md` stays in sync with code.** Every turn that changes a
+  non-ignorable file must also update `README.md`. The local Stop hook
+  `.claude/hooks/readme-freshness.sh` blocks the turn otherwise.
+- **Feature branches always land on `main`.** Whenever a non-main branch
+  is pushed, it is merged into `main` and `main` is pushed to origin.
+  Runs locally via the PostToolUse hook `.claude/hooks/auto-merge-main.sh`
+  and server-side via `.github/workflows/auto-merge-to-main.yml` — either
+  one is sufficient, both running is harmless.
+
+Skip the README sync for changes confined to: `.claude/`, `.github/`,
+lockfiles, `.gitignore`/`.gitattributes`, `CLAUDE.md`, `app/data/`, or
+`app/public/uploads/`. Edit the ignore list in the hook if another
+genuinely-README-irrelevant path appears.
+
+## Cutting a release
+
+The [`release.yml`](.github/workflows/release.yml) workflow builds signed/unsigned
+installers for every target and attaches them to a GitHub Release:
+
+| Target     | Runner            | Built with              | Artifact                 |
+| ---------- | ----------------- | ----------------------- | ------------------------ |
+| Web        | `ubuntu-latest`   | `zip`                   | `travellog-web-*.zip`    |
+| Windows    | `windows-latest`  | Pake (Tauri)            | `*.msi` / `*.exe`        |
+| macOS      | `macos-latest` ×2 | Pake — x64 + arm64      | `*-x86_64-apple-darwin.dmg`, `*-aarch64-apple-darwin.dmg` |
+| Linux      | `ubuntu-latest`   | Pake                    | `*.AppImage` + `*.deb`   |
+| Android    | `ubuntu-latest`   | Bubblewrap (TWA)        | `*.apk` (+ `*.aab` for Play) |
+| iOS        | `macos-latest`    | PWABuilder iOS template | `travellog-ios-xcode-*.zip` (build locally in Xcode) |
+
+Trigger it either way:
+
+```bash
+# Tag a release (creates a GitHub Release automatically)
+git tag v1.0.0 && git push origin v1.0.0
+
+# Or run it manually from GitHub → Actions → "Release" → Run workflow
+# (lets you override APP_URL without tagging)
+```
+
+Set the repository variable `APP_URL` (Settings → Secrets & variables →
+Actions → Variables) to the hosted URL of your PWA — the desktop and
+mobile wrappers load that URL at runtime. The web zip always contains
+the full PHP source regardless.
 
 ## Installing the app (all platforms)
 

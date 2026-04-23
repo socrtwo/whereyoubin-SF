@@ -70,6 +70,36 @@ final class Database
             photo_path  VARCHAR(500) DEFAULT NULL,
             created_at  $ts
         )");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS users (
+            id             $pk,
+            email          VARCHAR(255) NOT NULL,
+            password_hash  VARCHAR(255) NOT NULL,
+            display_name   VARCHAR(255) DEFAULT NULL,
+            created_at     $ts
+        )");
+        // Cross-driver unique index (MySQL ignores IF NOT EXISTS on indexes pre-8, so wrap in try)
+        try { $pdo->exec('CREATE UNIQUE INDEX ux_users_email ON users(email)'); } catch (\Throwable) {}
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS user_sessions (
+            id           VARCHAR(64) PRIMARY KEY,
+            user_id      BIGINT NOT NULL,
+            created_at   $ts,
+            expires_at   DATETIME NOT NULL
+        )");
+        try { $pdo->exec('CREATE INDEX ix_user_sessions_uid ON user_sessions(user_id)'); } catch (\Throwable) {}
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS place_visits (
+            id           $pk,
+            owner        VARCHAR(80) NOT NULL,
+            map_key      VARCHAR(32) NOT NULL,
+            place_code   VARCHAR(16) NOT NULL,
+            visited_on   DATE DEFAULT NULL,
+            notes        TEXT,
+            created_at   $ts
+        )");
+        try { $pdo->exec('CREATE UNIQUE INDEX ux_place_visits ON place_visits(owner, map_key, place_code)'); } catch (\Throwable) {}
+        try { $pdo->exec('CREATE INDEX ix_place_visits_owner ON place_visits(owner)'); } catch (\Throwable) {}
     }
 
     /** @param array<string, mixed> $params */
