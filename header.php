@@ -1,8 +1,6 @@
-<?
-
+<?php
 include 'j_countries_count.php';
-include 'include.php'; 
-
+include 'include.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">

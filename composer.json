@@ -1,0 +1,30 @@
+{
+    "name": "socrtwo/whereyoubin-sf",
+    "description": "Where Have I Been? — classic clickable world maps plus a modern PWA travel log app.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*"
+    },
+    "suggest": {
+        "ext-gd": "Required by the legacy poster/map image generator",
+        "ext-curl": "Required by the legacy short-URL backends",
+        "ext-pdo_mysql": "For MySQL-backed deployments",
+        "ext-pdo_sqlite": "For zero-config SQLite deployments (default for the travel-log app)"
+    },
+    "autoload": {
+        "psr-4": {
+            "TravelLog\\": "app/src/"
+        }
+    },
+    "scripts": {
+        "serve": "php -S 127.0.0.1:8000 -t app/public app/public/index.php",
+        "lint":  "bash -c 'for f in $(find . -name \"*.php\" -not -path \"./TCPDF/*\"); do php -l \"$f\" || exit 1; done'"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

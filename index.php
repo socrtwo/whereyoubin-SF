@@ -1071,4 +1071,4 @@ http://sourceforge.net/projects/whereyoubin/</a></p>
 <area shape="default" nohref="nohref" alt="" /></map>	
 
 
-<? include 'footer.php'; ?>
+<?php include 'footer.php'; ?>
