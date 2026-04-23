@@ -109,6 +109,13 @@ lives in the browser's IndexedDB. Current contents:
 The web release keeps using `install.php`, which already asks the
 operator for a base URL during install.
 
+The router in `app/src/Router.php` only derives a mount-prefix from
+`SCRIPT_NAME` when that variable actually points at a `.php` file — a
+necessary guard because PHP 8.2 / 8.3's built-in server sets
+`SCRIPT_NAME` to the request URI itself for URLs with non-default
+extensions (`.json`, etc.), which would otherwise strip the prefix
+and 404 valid API routes.
+
 ## Repository automation
 
 Two rules are always true here, enforced by a Claude Code harness hook,
