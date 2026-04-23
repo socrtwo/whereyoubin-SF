@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0ea5e9">
+    <title>Travel Log — Where Have You Been?</title>
+    <meta name="description" content="Track your trips across 14 regional maps. Runs entirely on-device — no account, no server.">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="#/">
+            <span class="brand-mark" aria-hidden="true">🗺️</span>
+            <span class="brand-text">Travel Log</span>
+        </a>
+        <nav class="nav">
+            <a href="#/"       data-route="home">Trips</a>
+            <a href="#/maps"   data-route="maps">Maps</a>
+            <a href="#/world"  data-route="world">World</a>
+            <a href="#/stats"  data-route="stats">Stats</a>
+            <a href="#/new"    data-route="new" class="btn-primary">+ New Trip</a>
+            <button type="button" class="theme-toggle" aria-label="Toggle theme">🌓</button>
+        </nav>
+    </header>
+    <div id="flash" class="flash" hidden></div>
+    <main class="container" id="view"></main>
+    <footer class="footer">
+        <p>Travel Log standalone • Runs entirely on this device. Your data never leaves — no account needed.</p>
+        <p>
+            <a href="#/export">Export JSON</a> ·
+            <a href="#/import">Import JSON</a> ·
+            <span class="muted">Storage: <span id="storage-size">…</span></span>
+        </p>
+    </footer>
+
+    <!-- Leaflet is only loaded when the world view is opened -->
+    <script type="module" src="./app.js"></script>
+</body>
+</html>

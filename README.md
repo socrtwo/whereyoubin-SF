@@ -90,6 +90,25 @@ php -S 127.0.0.1:8001
 - Extensions: `pdo`, `pdo_sqlite` *or* `pdo_mysql`, `mbstring`, `json`
 - Optional: `gd` + `curl` for the classic poster/map tools
 
+## Standalone client-side build (work in progress)
+
+`app/standalone/` holds the offline-first client-side build that ships
+inside the desktop (Windows/macOS/Linux) and mobile (Android/iOS)
+wrappers. Unlike the server edition it does **not** require PHP or a
+hosted URL — all 14 maps are baked into `maps-data.js` and user state
+lives in the browser's IndexedDB. Current contents:
+
+- `maps-data.js` — auto-generated from `app/src/Maps.php` (623 places
+  across 14 regional maps; regenerate with the one-liner at the top of
+  the file).
+- `index.html`, `styles.css`, `icons/` — the shell.
+- `app.js` / `sw.js` / `manifest.webmanifest` — *not yet written*;
+  next step is the IndexedDB-backed SPA logic and the offline service
+  worker.
+
+The web release keeps using `install.php`, which already asks the
+operator for a base URL during install.
+
 ## Repository automation
 
 Two rules are always true here, enforced by a Claude Code harness hook,
