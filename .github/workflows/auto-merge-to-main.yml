@@ -1,0 +1,52 @@
+name: Auto-merge feature branches into main
+
+# Server-side safety net. Complements the local PostToolUse hook in
+# .claude/settings.json: whenever a feature branch is pushed, fast-forward
+# (or merge-commit) it into `main` and push. Skipped for:
+#   - pushes to main itself
+#   - tag pushes
+#   - branch deletions
+
+on:
+  push:
+    branches-ignore:
+      - main
+    tags-ignore:
+      - '**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-merge-main
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.deleted != true }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fast-forward (or merge) ${{ github.ref_name }} into main
+        run: |
+          set -e
+          git fetch origin "${{ github.ref_name }}"
+          if git merge --ff-only "origin/${{ github.ref_name }}"; then
+            echo "Fast-forwarded main to ${{ github.ref_name }}."
+          else
+            git merge --no-ff "origin/${{ github.ref_name }}" \
+              -m "Merge ${{ github.ref_name }} into main"
+          fi
+
+      - name: Push main
+        run: git push origin main

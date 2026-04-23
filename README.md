@@ -90,6 +90,25 @@ php -S 127.0.0.1:8001
 - Extensions: `pdo`, `pdo_sqlite` *or* `pdo_mysql`, `mbstring`, `json`
 - Optional: `gd` + `curl` for the classic poster/map tools
 
+## Repository automation
+
+Two rules are always true here, enforced by a Claude Code harness hook,
+a GitHub Action, and a `CLAUDE.md` policy (details in [`CLAUDE.md`](CLAUDE.md)):
+
+- **`README.md` stays in sync with code.** Every turn that changes a
+  non-ignorable file must also update `README.md`. The local Stop hook
+  `.claude/hooks/readme-freshness.sh` blocks the turn otherwise.
+- **Feature branches always land on `main`.** Whenever a non-main branch
+  is pushed, it is merged into `main` and `main` is pushed to origin.
+  Runs locally via the PostToolUse hook `.claude/hooks/auto-merge-main.sh`
+  and server-side via `.github/workflows/auto-merge-to-main.yml` — either
+  one is sufficient, both running is harmless.
+
+Skip the README sync for changes confined to: `.claude/`, `.github/`,
+lockfiles, `.gitignore`/`.gitattributes`, `CLAUDE.md`, `app/data/`, or
+`app/public/uploads/`. Edit the ignore list in the hook if another
+genuinely-README-irrelevant path appears.
+
 ## Cutting a release
 
 The [`release.yml`](.github/workflows/release.yml) workflow builds signed/unsigned
