@@ -16,7 +16,16 @@ final class Router
     public function dispatch(string $method, string $uri): void
     {
         $path = parse_url($uri, PHP_URL_PATH) ?: '/';
-        $base = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/');
+
+        // SCRIPT_NAME is a mount-point hint (e.g. /subdir/index.php when the
+        // app is deployed under a subdirectory). Derive a base prefix from it
+        // ONLY if it actually looks like a PHP script path; under some PHP
+        // built-in server versions (8.2 / 8.3), SCRIPT_NAME is set to the
+        // request URI itself for URLs with non-default extensions (.json,
+        // etc.), which would otherwise mangle base stripping and 404 valid
+        // routes. A real mount prefix always ends in ".php".
+        $scriptName = (string)($_SERVER['SCRIPT_NAME'] ?? '');
+        $base = str_ends_with($scriptName, '.php') ? rtrim(dirname($scriptName), '/') : '';
         if ($base !== '' && str_starts_with($path, $base)) {
             $path = substr($path, strlen($base)) ?: '/';
         }
