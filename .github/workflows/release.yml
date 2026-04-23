@@ -109,7 +109,7 @@ jobs:
           extensions: mbstring, json
       - run: |
           php -r 'require "app/src/Maps.php";
-                  $out = "// Auto-generated from app/src/Maps.php.\nexport const MAPS = " . json_encode(TravelLog\\Maps::all(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . ";\n";
+                  $out = "// Auto-generated from app/src/Maps.php.\nexport const MAPS = " . json_encode(TravelLog\Maps::all(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . ";\n";
                   file_put_contents("app/standalone/maps-data.js", $out);'
 
       - uses: actions/configure-pages@v5

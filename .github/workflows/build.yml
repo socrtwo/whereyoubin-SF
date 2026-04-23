@@ -92,7 +92,7 @@ jobs:
       - name: Regenerate maps-data.js and serve the static bundle
         run: |
           php -r 'require "app/src/Maps.php";
-                  $out = "// Auto-generated from app/src/Maps.php.\nexport const MAPS = " . json_encode(TravelLog\\Maps::all(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . ";\n";
+                  $out = "// Auto-generated from app/src/Maps.php.\nexport const MAPS = " . json_encode(TravelLog\Maps::all(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . ";\n";
                   file_put_contents("app/standalone/maps-data.js", $out);'
           php -S 127.0.0.1:8000 -t app/standalone > /tmp/s.log 2>&1 &
           SRV=$!

@@ -1,5 +1,4 @@
-// Auto-generated from app/src/Maps.php. Do not edit by hand — regenerate with
-// php -r "require \"app/src/Maps.php\"; echo json_encode(TravelLog\\Maps::all(), JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);"
+// Auto-generated from app/src/Maps.php.
 export const MAPS = {
     "us": {
         "title": "United States",

@@ -38,7 +38,7 @@ all_changes=$(printf '%s\n%s\n%s\n%s\n' "$committed" "$unstaged" "$staged" "$unt
 [ -z "$all_changes" ] && exit 0
 
 # Paths whose changes don't imply a README update.
-ignore_re='^(\.claude/|\.github/|\.gitignore$|\.gitattributes$|composer\.lock$|package-lock\.json$|yarn\.lock$|pnpm-lock\.yaml$|app/data/|app/public/uploads/|CLAUDE\.md$)'
+ignore_re='^(\.claude/|\.github/|\.gitignore$|\.gitattributes$|composer\.lock$|package-lock\.json$|yarn\.lock$|pnpm-lock\.yaml$|app/data/|app/public/uploads/|CLAUDE\.md$|app/standalone/maps-data\.js$)'
 
 needs_readme=$(echo "$all_changes" | grep -Ev "$ignore_re" || true)
 [ -z "$needs_readme" ] && exit 0
