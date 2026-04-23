@@ -1,24 +1,19 @@
-	<script type="text/javascript">
-	String.prototype.get = function(p)
-	{
-    	return (match = this.match(new RegExp("[?|&]?" + p + "=([^&]*)"))) ? match[1] : false;
-	}
-	JdOnLoad()
+	<script>
+	String.prototype.get = function(p) {
+		var match = this.match(new RegExp('[?|&]?' + p + '=([^&]*)'));
+		return match ? match[1] : false;
+	};
+	if (typeof JdOnLoad === 'function') { JdOnLoad(); }
 	</script>
 
-
 	</div>
-	<?
-	$countries = $_SESSION[$thisMap];
-	$countries = explode('#',$countries);
-	foreach($countries AS $key) 
-	{
-			if($key != null) 
-			{
-	?>
-		<script>document.getElementById('<?php echo $key; ?>').checked=true;</script>
-	<?
-			}
+	<?php
+	$countries = (string)($_SESSION[$thisMap] ?? '');
+	$countries = explode('#', $countries);
+	foreach ($countries as $key) {
+		if ($key !== '' && $key !== null) {
+			echo '<script>var el=document.getElementById(' . json_encode($key) . '); if(el){el.checked=true;}</script>' . "\n";
+		}
 	}
 	?>
 	</body>

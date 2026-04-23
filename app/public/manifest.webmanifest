@@ -1,0 +1,22 @@
+{
+    "name": "Travel Log — Where Have You Been?",
+    "short_name": "Travel Log",
+    "description": "Log trips, photos, notes, and countries. Installable on Windows, macOS, Linux, Android, iOS, and Web.",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#0b1220",
+    "theme_color": "#0ea5e9",
+    "categories": ["travel", "lifestyle", "productivity"],
+    "icons": [
+        { "src": "icons/icon.svg",     "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" },
+        { "src": "icons/icon-192.png", "type": "image/png",     "sizes": "192x192", "purpose": "any" },
+        { "src": "icons/icon-512.png", "type": "image/png",     "sizes": "512x512", "purpose": "any" }
+    ],
+    "shortcuts": [
+        { "name": "New Trip", "short_name": "New",   "url": "./new",   "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
+        { "name": "Map",      "short_name": "Map",   "url": "./map",   "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] },
+        { "name": "Stats",    "short_name": "Stats", "url": "./stats", "icons": [{ "src": "icons/icon.svg", "sizes": "any" }] }
+    ]
+}

@@ -1,25 +1,14 @@
 <?php
-error_reporting(0);
+declare(strict_types=1);
 
-/* Session start */
-session_start();
-
-$countries = $_SESSION[$thisMap];
-$countries = explode('#',$countries);
-
-foreach($countries AS $key) $i++;
-
-$i--;
-
-if ($i == 1)
-{
-	$areasVisited = $i.' country';
-	$regionsCount = $i.' World country';
-}
-else
-{
-	$areasVisited = $i.' countries';
-	$regionsCount = $i.' World countries';
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
 }
 
-?>
+$thisMap   = $thisMap ?? 'world_map';
+$raw       = (string)($_SESSION[$thisMap] ?? '');
+$countries = array_filter(explode('#', $raw), static fn($v) => $v !== '');
+$i         = count($countries);
+
+$areasVisited = $i === 1 ? $i . ' country'      : $i . ' countries';
+$regionsCount = $i === 1 ? $i . ' World country' : $i . ' World countries';
