@@ -59,7 +59,7 @@ jobs:
           php -S 127.0.0.1:8000 -t app/public app/public/index.php &
           SRV_PID=$!
           sleep 1
-          for path in / /new /map /stats /maps /maps/us /maps/europe /maps/canada /maps/africa /maps/russia /maps/china /maps/india /maps/samerica /maps/caribbean /maps/asia /maps/australia /maps/pacific /login /signup /api/trips.json /api/places.json /manifest.webmanifest /sw.js /styles.css /app.js /icons/icon.svg; do
+          for path in / /new /map /stats /maps /maps/us /maps/europe /maps/canada /maps/africa /maps/russia /maps/china /maps/india /maps/samerica /maps/caribbean /maps/asia /maps/australia /maps/pacific /maps/commonwealth /maps/uk /login /signup /api/trips.json /api/places.json /manifest.webmanifest /sw.js /styles.css /app.js /icons/icon.svg; do
             code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000$path")
             echo "GET $path → $code"
             test "$code" = "200"

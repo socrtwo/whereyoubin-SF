@@ -12,7 +12,7 @@ Both share a PHP 8.2+ codebase that's been deliberately hardened to survive futu
 ## Highlights
 
 - 📱 **Install natively on Windows, macOS, Linux, Android, iOS, and the Web** from one codebase (PWA).
-- 🌍 **Twelve regional maps** you can tick off: US states, Europe, Canadian provinces, Africa, Russian federal subjects, Chinese provinces, Indian states & UTs, South America, Caribbean, Asia, Australian states, Pacific islands.
+- 🌍 **Fourteen regional maps** you can tick off: US states, Europe, Canadian provinces, Africa, Russian federal subjects, Chinese provinces, Indian states & UTs, South America, Caribbean, Asia, Australian states, Pacific islands, Commonwealth of Nations, and UK counties/nations.
 - 👤 **Accounts that follow you** — email + password sign-in so picks survive cleared cookies, new browsers/computers/phones, and IP changes. Guest picks are auto-claimed on signup.
 - 🧳 **Full travel log**: trips, photos, ratings, notes, dates, coordinates, country detection, CSV/JSON export.
 - 🗺️ **Interactive world map** of your trips (Leaflet + OpenStreetMap).
@@ -55,6 +55,8 @@ picks a stronger algorithm later). All mutations are CSRF-protected.
 | Asia               | Sovereign countries (incl. SARs)       | 51    |
 | Australia          | States & territories                   | 8     |
 | Pacific Islands    | Countries, territories & possessions   | 25    |
+| Commonwealth       | All 56 member states                   | 56    |
+| United Kingdom     | Nations, regions & counties/council areas | 124 |
 
 ## Screenshots
 

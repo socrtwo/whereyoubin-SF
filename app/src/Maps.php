@@ -48,6 +48,10 @@ final class Maps
                             'places' => self::australia()],
             'pacific'   => ['title' => 'Pacific Islands', 'emoji' => '🐚', 'subtitle' => 'Countries, territories & possessions',
                             'places' => self::pacific()],
+            'commonwealth' => ['title' => 'Commonwealth of Nations', 'emoji' => '👑', 'subtitle' => 'All 56 member states',
+                            'places' => self::commonwealth()],
+            'uk'        => ['title' => 'United Kingdom', 'emoji' => '🇬🇧', 'subtitle' => 'Nations, regions & ceremonial counties',
+                            'places' => self::uk()],
         ];
     }
 
@@ -261,6 +265,112 @@ final class Maps
             'TK' => 'Tokelau (NZ)', 'TO' => 'Tonga', 'TV' => 'Tuvalu',
             'VU' => 'Vanuatu', 'WF' => 'Wallis and Futuna (FR)',
             'HM' => 'Heard & McDonald Islands (AU)', 'UM' => 'US Minor Outlying Is. (US)',
+        ];
+    }
+
+    /** Commonwealth of Nations — all 56 current member states (ISO alpha-2). */
+    private static function commonwealth(): array
+    {
+        return [
+            'AG' => 'Antigua and Barbuda', 'AU' => 'Australia', 'BS' => 'Bahamas',
+            'BD' => 'Bangladesh', 'BB' => 'Barbados', 'BZ' => 'Belize',
+            'BW' => 'Botswana', 'BN' => 'Brunei', 'CM' => 'Cameroon',
+            'CA' => 'Canada', 'CY' => 'Cyprus', 'DM' => 'Dominica',
+            'SZ' => 'Eswatini', 'FJ' => 'Fiji', 'GA' => 'Gabon',
+            'GM' => 'The Gambia', 'GH' => 'Ghana', 'GD' => 'Grenada',
+            'GY' => 'Guyana', 'IN' => 'India', 'JM' => 'Jamaica',
+            'KE' => 'Kenya', 'KI' => 'Kiribati', 'LS' => 'Lesotho',
+            'MW' => 'Malawi', 'MY' => 'Malaysia', 'MV' => 'Maldives',
+            'MT' => 'Malta', 'MU' => 'Mauritius', 'MZ' => 'Mozambique',
+            'NA' => 'Namibia', 'NR' => 'Nauru', 'NZ' => 'New Zealand',
+            'NG' => 'Nigeria', 'PK' => 'Pakistan', 'PG' => 'Papua New Guinea',
+            'RW' => 'Rwanda', 'KN' => 'Saint Kitts and Nevis',
+            'LC' => 'Saint Lucia', 'VC' => 'Saint Vincent and the Grenadines',
+            'WS' => 'Samoa', 'SC' => 'Seychelles', 'SL' => 'Sierra Leone',
+            'SG' => 'Singapore', 'SB' => 'Solomon Islands',
+            'ZA' => 'South Africa', 'LK' => 'Sri Lanka', 'TZ' => 'Tanzania',
+            'TO' => 'Tonga', 'TT' => 'Trinidad and Tobago', 'TV' => 'Tuvalu',
+            'UG' => 'Uganda', 'GB' => 'United Kingdom', 'VU' => 'Vanuatu',
+            'ZM' => 'Zambia', 'TG' => 'Togo',
+        ];
+    }
+
+    /**
+     * United Kingdom — the four constituent nations, the London/English regions,
+     * and the ceremonial counties and council areas of each nation. Codes use
+     * ISO 3166-2:GB where it exists (council areas & English counties),
+     * plus short codes for the four nations and the nine English regions.
+     */
+    private static function uk(): array
+    {
+        return [
+            // Nations
+            'ENG' => 'England', 'SCT' => 'Scotland', 'WLS' => 'Wales', 'NIR' => 'Northern Ireland',
+
+            // English regions
+            'R-LON' => 'Greater London', 'R-SE' => 'South East England',
+            'R-SW'  => 'South West England', 'R-EE' => 'East of England',
+            'R-EM'  => 'East Midlands', 'R-WM' => 'West Midlands',
+            'R-YH'  => 'Yorkshire & the Humber', 'R-NW' => 'North West England',
+            'R-NE'  => 'North East England',
+
+            // English ceremonial counties (selection covering the 48)
+            'BDF' => 'Bedfordshire', 'BRK' => 'Berkshire', 'BKM' => 'Buckinghamshire',
+            'CAM' => 'Cambridgeshire', 'CHS' => 'Cheshire', 'CON' => 'Cornwall',
+            'CMA' => 'Cumbria', 'DBY' => 'Derbyshire', 'DEV' => 'Devon',
+            'DOR' => 'Dorset', 'DUR' => 'County Durham', 'ESX' => 'East Sussex',
+            'ESS' => 'Essex', 'GLS' => 'Gloucestershire', 'HAM' => 'Hampshire',
+            'HEF' => 'Herefordshire', 'HRT' => 'Hertfordshire',
+            'IOW' => 'Isle of Wight', 'KEN' => 'Kent', 'LAN' => 'Lancashire',
+            'LEC' => 'Leicestershire', 'LIN' => 'Lincolnshire',
+            'MSY' => 'Merseyside', 'NFK' => 'Norfolk', 'NYK' => 'North Yorkshire',
+            'NTH' => 'Northamptonshire', 'NBL' => 'Northumberland',
+            'NTT' => 'Nottinghamshire', 'OXF' => 'Oxfordshire', 'RUT' => 'Rutland',
+            'SHR' => 'Shropshire', 'SOM' => 'Somerset', 'SYK' => 'South Yorkshire',
+            'STS' => 'Staffordshire', 'SFK' => 'Suffolk', 'SRY' => 'Surrey',
+            'TAW' => 'Tyne and Wear', 'WAR' => 'Warwickshire', 'WMD' => 'West Midlands County',
+            'WSX' => 'West Sussex', 'WYK' => 'West Yorkshire', 'WIL' => 'Wiltshire',
+            'WOR' => 'Worcestershire',
+
+            // Scottish council areas (32)
+            'ABE' => 'Aberdeen City', 'ABD' => 'Aberdeenshire', 'ANS' => 'Angus',
+            'AGB' => 'Argyll and Bute', 'CLK' => 'Clackmannanshire',
+            'DGY' => 'Dumfries and Galloway', 'DND' => 'Dundee City',
+            'EAY' => 'East Ayrshire', 'EDU' => 'East Dunbartonshire',
+            'ELN' => 'East Lothian', 'ERW' => 'East Renfrewshire',
+            'EDH' => 'City of Edinburgh', 'ELS' => 'Eilean Siar',
+            'FAL' => 'Falkirk', 'FIF' => 'Fife', 'GLG' => 'Glasgow City',
+            'HLD' => 'Highland', 'IVC' => 'Inverclyde', 'MLN' => 'Midlothian',
+            'MRY' => 'Moray', 'NAY' => 'North Ayrshire',
+            'NLK' => 'North Lanarkshire', 'ORK' => 'Orkney Islands',
+            'PKN' => 'Perth and Kinross', 'RFW' => 'Renfrewshire',
+            'SCB' => 'Scottish Borders', 'ZET' => 'Shetland Islands',
+            'SAY' => 'South Ayrshire', 'SLK' => 'South Lanarkshire',
+            'STG' => 'Stirling', 'WDU' => 'West Dunbartonshire',
+            'WLN' => 'West Lothian',
+
+            // Welsh principal areas (22)
+            'BGW' => 'Blaenau Gwent', 'BGE' => 'Bridgend', 'CAY' => 'Caerphilly',
+            'CRF' => 'Cardiff', 'CMN' => 'Carmarthenshire', 'CGN' => 'Ceredigion',
+            'CWY' => 'Conwy', 'DEN' => 'Denbighshire', 'FLN' => 'Flintshire',
+            'GWN' => 'Gwynedd', 'AGY' => 'Isle of Anglesey',
+            'MTY' => 'Merthyr Tydfil', 'MON' => 'Monmouthshire',
+            'NTL' => 'Neath Port Talbot', 'NWP' => 'Newport',
+            'PEM' => 'Pembrokeshire', 'POW' => 'Powys',
+            'RCT' => 'Rhondda Cynon Taf', 'SWA' => 'Swansea',
+            'TOF' => 'Torfaen', 'VGL' => 'Vale of Glamorgan',
+            'WRX' => 'Wrexham',
+
+            // Northern Ireland — 11 districts (2015 reorganisation)
+            'ANN' => 'Antrim and Newtownabbey', 'AND' => 'Ards and North Down',
+            'ABC' => 'Armagh City, Banbridge & Craigavon',
+            'BFS' => 'Belfast', 'CCG' => 'Causeway Coast and Glens',
+            'DRS' => 'Derry City and Strabane', 'FMO' => 'Fermanagh and Omagh',
+            'LBC' => 'Lisburn and Castlereagh', 'MEA' => 'Mid and East Antrim',
+            'MUL' => 'Mid Ulster', 'NMD' => 'Newry, Mourne and Down',
+
+            // Crown dependencies (not in the UK, but commonly grouped)
+            'IMN' => 'Isle of Man', 'JEY' => 'Jersey', 'GGY' => 'Guernsey',
         ];
     }
 }
