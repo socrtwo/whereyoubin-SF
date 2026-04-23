@@ -157,6 +157,40 @@ Actions → Variables) to the hosted URL of your PWA — the desktop and
 mobile wrappers load that URL at runtime. The web zip always contains
 the full PHP source regardless.
 
+## Two product lines
+
+Travel Log ships in two flavours from the same repo — pick whichever
+matches how you want to use it:
+
+### Web (hosted, multi-device)
+
+`app/public/` is a PHP 8.2+ backend with accounts. Data lives on your
+server, so picks follow you across every browser and device when you
+sign in. Install flow:
+
+1. Unzip the web release bundle on a PHP host.
+2. Open `install.php` in a browser. **The installer asks for your web
+   address** (and optional MySQL credentials — SQLite is the default),
+   then seeds the database.
+3. Share the URL with yourself on every device you own.
+
+### Desktop & mobile (on-device, offline-first)
+
+`app/standalone/` is a fully client-side version — no PHP, no account,
+no server. All 14 regional maps are baked into the bundle; trips and
+place-visits are stored in **IndexedDB on the device**. This is what
+the Windows / macOS / Linux / Android / iOS release artifacts wrap:
+
+- Published to GitHub Pages by the `pages` job in `release.yml`.
+- Loaded once from that URL on first launch, then cached by a service
+  worker so every subsequent launch works with no network.
+- No "ask for URL" prompt on launch — the app runs the moment you open
+  it and is ready for all the maps you've worked on.
+
+You can also open `app/standalone/index.html` locally to try it in any
+modern browser — double-click the file or serve the folder with
+`python3 -m http.server` / `php -S 127.0.0.1:8000 -t app/standalone`.
+
 ## Installing the app (all platforms)
 
 The app is a Progressive Web App, installable from a single URL:

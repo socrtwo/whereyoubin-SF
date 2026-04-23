@@ -1,22 +1,24 @@
 name: Release
 
-# Builds distributable artifacts for all six platforms on tag push (v*.*.*)
-# or manual dispatch, then publishes a GitHub Release bundling them.
+# Two product lines share this workflow:
 #
-# The mobile / desktop wrappers load the PWA from a hosted URL. Set the
-# repository variable APP_URL (Settings → Variables) or pass it on manual
-# dispatch; otherwise wrappers fall back to a placeholder and still build
-# as a demo.
+#   • Web bundle (the PHP backend): zipped on every run. When installed on
+#     a host, install.php asks the operator for their web address.
+#
+#   • Desktop & mobile wrappers (Pake / Bubblewrap / PWABuilder iOS): wrap
+#     the STANDALONE client-side app at app/standalone/. No hosted URL is
+#     needed for the end user — the app runs on-device with IndexedDB
+#     persistence and every map baked in.
+#
+# The standalone build is published to GitHub Pages by the `pages` job;
+# the wrapper jobs load it from there on first run, then cache it via a
+# service worker so subsequent launches work offline.
 
 on:
   push:
     tags: ['v*.*.*']
   workflow_dispatch:
     inputs:
-      app_url:
-        description: 'Hosted URL of the PWA (must end with / and serve manifest.webmanifest)'
-        required: false
-        default: ''
       tag:
         description: 'Tag name for the release (used when run manually)'
         required: false
@@ -24,10 +26,12 @@ on:
 
 permissions:
   contents: write
+  pages:    write
+  id-token: write
 
 env:
-  APP_NAME:   "Travel Log"
-  APP_URL:    ${{ github.event.inputs.app_url != '' && github.event.inputs.app_url || vars.APP_URL || 'https://example.com/travel-log/' }}
+  APP_NAME:    "Travel Log"
+  STANDALONE_URL: ${{ vars.STANDALONE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
   RELEASE_TAG: ${{ github.event.inputs.tag != '' && github.event.inputs.tag || github.ref_name }}
 
 jobs:
@@ -53,17 +57,34 @@ jobs:
       - name: Pack the web distribution
         run: |
           set -e
-          mkdir -p dist
+          mkdir -p dist bundle
+          cp -r app css fonts images maps scripts docs bundle/
+          cp config.example.php composer.json bundle/
+          cp footer.php header.php include.php install.php index.php bundle/
+          cp j_countries_count.php j_countries_load.php j_poster.php j_save.php bundle/
+          cp LICENSE README.md bundle/
+          rm -f bundle/app/data/travellog.sqlite
+          rm -rf bundle/app/public/uploads/*
+
+          # Big "install first" banner for the web archive.
+          cat > bundle/INSTALL.md <<'MD'
+          # Travel Log — Web install
+
+          This zip contains the PHP backend. Upload it to any PHP 8.2+ host
+          (Apache, Nginx, or the built-in server) and open
+
+              https://<your-domain>/install.php
+
+          in a browser. The installer asks for your **web address**, MySQL
+          credentials (optional — SQLite is the default), and a language,
+          then seeds the database and redirects you to the app.
+
+          The desktop and mobile versions in this release run entirely
+          on-device and do NOT need this web bundle.
+          MD
+
           BUNDLE="travellog-web-${{ env.RELEASE_TAG }}.zip"
-          # Include the full project: legacy map tool + new PWA app
-          zip -r "dist/$BUNDLE" \
-            app \
-            css fonts images maps scripts docs \
-            config.example.php composer.json \
-            footer.php header.php include.php install.php index.php \
-            j_countries_count.php j_countries_load.php j_poster.php j_save.php \
-            LICENSE README.md \
-            -x 'app/data/travellog.sqlite' 'app/public/uploads/*'
+          (cd bundle && zip -r "../dist/$BUNDLE" .)
           ls -lh dist/
 
       - uses: actions/upload-artifact@v4
@@ -72,9 +93,37 @@ jobs:
           path: dist/*
 
 # ----------------------------------------------------------------------------
+  pages:
+    name: Publish standalone to GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate maps-data.js from Maps.php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, json
+      - run: |
+          php -r 'require "app/src/Maps.php";
+                  $out = "// Auto-generated from app/src/Maps.php.\nexport const MAPS = " . json_encode(TravelLog\\Maps::all(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . ";\n";
+                  file_put_contents("app/standalone/maps-data.js", $out);'
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/standalone
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+# ----------------------------------------------------------------------------
   linux:
     name: Desktop — Linux (.AppImage + .deb)
     runs-on: ubuntu-latest
+    needs: [pages]
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -92,7 +141,7 @@ jobs:
       - name: Build with Pake
         run: |
           npm install -g pake-cli
-          pake "${{ env.APP_URL }}" \
+          pake "${{ env.STANDALONE_URL }}" \
             --name "${{ env.APP_NAME }}" \
             --icon "$PWD/app/public/icons/icon-512.png" \
             --width 1200 --height 800
@@ -110,6 +159,7 @@ jobs:
   macos:
     name: Desktop — macOS (.dmg)
     runs-on: macos-latest
+    needs: [pages]
     continue-on-error: true
     strategy:
       matrix:
@@ -125,7 +175,7 @@ jobs:
       - name: Build with Pake
         run: |
           npm install -g pake-cli
-          pake "${{ env.APP_URL }}" \
+          pake "${{ env.STANDALONE_URL }}" \
             --name "${{ env.APP_NAME }}" \
             --icon "$PWD/app/public/icons/icon-512.png" \
             --targets "${{ matrix.arch }}" \
@@ -146,6 +196,7 @@ jobs:
   windows:
     name: Desktop — Windows (.msi)
     runs-on: windows-latest
+    needs: [pages]
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -157,7 +208,7 @@ jobs:
         shell: bash
         run: |
           npm install -g pake-cli
-          pake "${{ env.APP_URL }}" \
+          pake "${{ env.STANDALONE_URL }}" \
             --name "${{ env.APP_NAME }}" \
             --icon "$PWD/app/public/icons/icon-512.png" \
             --width 1200 --height 800
@@ -175,6 +226,7 @@ jobs:
   android:
     name: Mobile — Android (.apk)
     runs-on: ubuntu-latest
+    needs: [pages]
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -206,7 +258,7 @@ jobs:
           # Non-interactive init
           cat > init.json <<JSON
           {
-            "host":          "${{ env.APP_URL }}",
+            "host":          "${{ env.STANDALONE_URL }}",
             "name":          "${{ env.APP_NAME }}",
             "packageId":     "app.travellog.twa",
             "startUrl":      "/",
@@ -219,7 +271,7 @@ jobs:
           JSON
 
           bubblewrap init \
-            --manifest="${{ env.APP_URL }}manifest.webmanifest" \
+            --manifest="${{ env.STANDALONE_URL }}manifest.webmanifest" \
             --directory=. \
             --skipPwaValidation || true
 
@@ -244,6 +296,7 @@ jobs:
   ios:
     name: Mobile — iOS (Xcode project .zip)
     runs-on: macos-latest
+    needs: [pages]
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -264,8 +317,8 @@ jobs:
           cat > config.json <<JSON
           {
             "name":     "${{ env.APP_NAME }}",
-            "host":     "${{ env.APP_URL }}",
-            "manifest": "${{ env.APP_URL }}manifest.webmanifest",
+            "host":     "${{ env.STANDALONE_URL }}",
+            "manifest": "${{ env.STANDALONE_URL }}manifest.webmanifest",
             "bundleId": "app.travellog.ios",
             "themeColor": "#0ea5e9"
           }
@@ -283,7 +336,7 @@ jobs:
 # ----------------------------------------------------------------------------
   release:
     name: Publish GitHub Release
-    needs: [web, linux, macos, windows, android, ios]
+    needs: [web, pages, linux, macos, windows, android, ios]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -315,17 +368,24 @@ jobs:
           body: |
             ## Travel Log ${{ env.RELEASE_TAG }}
 
-            Native builds + the web bundle for every supported platform.
+            Two product lines:
 
-            | Platform       | Artifact                                         |
-            | -------------- | ------------------------------------------------ |
-            | **Web**        | `travellog-web-*.zip` — deploy to any PHP 8.2+ host |
-            | **Windows**    | `*.msi` (install) or `*.exe` (portable)          |
-            | **macOS**      | `*-x86_64-apple-darwin.dmg` + `*-aarch64-apple-darwin.dmg` |
-            | **Linux**      | `*.AppImage` (portable) + `*.deb` (Debian/Ubuntu) |
-            | **Android**    | `*.apk` (signed with release key — sideload or upload the `.aab` to Play) |
-            | **iOS**        | `travellog-ios-xcode-*.zip` — build + sign in Xcode |
+            - **Web** (`travellog-web-*.zip`) — the PHP backend. Unzip it on
+              any PHP 8.2+ host, open `install.php`, and enter your **web
+              address**. Great for multi-device sync (account = data
+              follows you everywhere).
 
-            The desktop and mobile wrappers load the PWA from `${{ env.APP_URL }}`.
-            Host the web bundle first, then rebuild with your URL via
-            `workflow_dispatch` to get binaries pointing at your deployment.
+            - **Desktop & mobile wrappers** — run entirely on-device with
+              all 14 regional maps built in. No account, no web address
+              needed; your data lives in IndexedDB. First launch pulls
+              the app from `${{ env.STANDALONE_URL }}` and caches it via
+              service worker; every launch after that is offline-capable.
+
+            | Platform    | Artifact                                                 |
+            | ----------- | -------------------------------------------------------- |
+            | **Web**     | `travellog-web-*.zip`                                    |
+            | **Windows** | `*.msi` (install) or `*.exe` (portable)                  |
+            | **macOS**   | `*-x86_64-apple-darwin.dmg` + `*-aarch64-apple-darwin.dmg` |
+            | **Linux**   | `*.AppImage` (portable) + `*.deb` (Debian/Ubuntu)        |
+            | **Android** | `*.apk` + `*.aab` (Play)                                 |
+            | **iOS**     | `travellog-ios-xcode-*.zip` (build + sign in Xcode)      |

@@ -54,14 +54,55 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: pdo, pdo_sqlite, mbstring, json
 
-      - name: Boot the app and probe the routes
+      - name: Boot the app and probe every route
         run: |
-          php -S 127.0.0.1:8000 -t app/public app/public/index.php &
+          set +e          # collect all failures; don't stop at the first
+          php -S 127.0.0.1:8000 -t app/public app/public/index.php > /tmp/srv.log 2>&1 &
           SRV_PID=$!
           sleep 1
+          failed=""
           for path in / /new /map /stats /maps /maps/us /maps/europe /maps/canada /maps/africa /maps/russia /maps/china /maps/india /maps/samerica /maps/caribbean /maps/asia /maps/australia /maps/pacific /maps/commonwealth /maps/uk /login /signup /api/trips.json /api/places.json /manifest.webmanifest /sw.js /styles.css /app.js /icons/icon.svg; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000$path")
-            echo "GET $path → $code"
-            test "$code" = "200"
+            code=$(curl -s -o /tmp/body -w '%{http_code}' "http://127.0.0.1:8000$path")
+            printf 'GET %-30s → %s\n' "$path" "$code"
+            if [ "$code" != "200" ]; then
+              failed="$failed $path($code)"
+              echo "--- response body for $path (first 40 lines) ---"
+              head -40 /tmp/body
+              echo "--- end ---"
+            fi
           done
-          kill "$SRV_PID"
+          kill "$SRV_PID" 2>/dev/null
+          echo
+          echo "--- PHP server log tail ---"
+          tail -40 /tmp/srv.log
+          if [ -n "$failed" ]; then
+            echo "::error::Non-200 routes:$failed"
+            exit 1
+          fi
+          echo "✅ All 28 routes returned 200 on PHP ${{ matrix.php }}"
+
+  standalone-smoke:
+    name: Standalone static bundle smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Regenerate maps-data.js and serve the static bundle
+        run: |
+          php -r 'require "app/src/Maps.php";
+                  $out = "// Auto-generated from app/src/Maps.php.\nexport const MAPS = " . json_encode(TravelLog\\Maps::all(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . ";\n";
+                  file_put_contents("app/standalone/maps-data.js", $out);'
+          php -S 127.0.0.1:8000 -t app/standalone > /tmp/s.log 2>&1 &
+          SRV=$!
+          sleep 1
+          failed=""
+          for p in / /index.html /app.js /maps-data.js /styles.css /manifest.webmanifest /sw.js /icons/icon.svg /icons/icon-192.png /icons/icon-512.png; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000$p")
+            printf 'GET %-30s → %s\n' "$p" "$code"
+            [ "$code" = "200" ] || failed="$failed $p($code)"
+          done
+          kill $SRV 2>/dev/null
+          [ -z "$failed" ] || { echo "::error::Non-200:$failed"; exit 1; }
+          echo "✅ Standalone bundle serves cleanly"
