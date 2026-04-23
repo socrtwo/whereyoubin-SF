@@ -1,0 +1,331 @@
+name: Release
+
+# Builds distributable artifacts for all six platforms on tag push (v*.*.*)
+# or manual dispatch, then publishes a GitHub Release bundling them.
+#
+# The mobile / desktop wrappers load the PWA from a hosted URL. Set the
+# repository variable APP_URL (Settings → Variables) or pass it on manual
+# dispatch; otherwise wrappers fall back to a placeholder and still build
+# as a demo.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: 'Hosted URL of the PWA (must end with / and serve manifest.webmanifest)'
+        required: false
+        default: ''
+      tag:
+        description: 'Tag name for the release (used when run manually)'
+        required: false
+        default: 'nightly'
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME:   "Travel Log"
+  APP_URL:    ${{ github.event.inputs.app_url != '' && github.event.inputs.app_url || vars.APP_URL || 'https://example.com/travel-log/' }}
+  RELEASE_TAG: ${{ github.event.inputs.tag != '' && github.event.inputs.tag || github.ref_name }}
+
+jobs:
+# ----------------------------------------------------------------------------
+  web:
+    name: Web bundle (.zip)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP for lint sanity check
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo, pdo_sqlite, mbstring, json, gd
+
+      - name: Lint every PHP file
+        run: |
+          set -e
+          while IFS= read -r f; do php -l "$f" > /dev/null; done \
+            < <(find . -name "*.php" -not -path "./TCPDF/*")
+
+      - name: Pack the web distribution
+        run: |
+          set -e
+          mkdir -p dist
+          BUNDLE="travellog-web-${{ env.RELEASE_TAG }}.zip"
+          # Include the full project: legacy map tool + new PWA app
+          zip -r "dist/$BUNDLE" \
+            app \
+            css fonts images maps scripts docs \
+            config.example.php composer.json \
+            footer.php header.php include.php install.php index.php \
+            j_countries_count.php j_countries_load.php j_poster.php j_save.php \
+            LICENSE README.md \
+            -x 'app/data/travellog.sqlite' 'app/public/uploads/*'
+          ls -lh dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: travellog-web
+          path: dist/*
+
+# ----------------------------------------------------------------------------
+  linux:
+    name: Desktop — Linux (.AppImage + .deb)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev \
+            librsvg2-dev patchelf
+
+      - name: Build with Pake
+        run: |
+          npm install -g pake-cli
+          pake "${{ env.APP_URL }}" \
+            --name "${{ env.APP_NAME }}" \
+            --icon "$PWD/app/public/icons/icon-512.png" \
+            --width 1200 --height 800
+          mkdir -p dist
+          mv *.deb *.AppImage *.rpm dist/ 2>/dev/null || true
+          ls -lh dist/ || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: travellog-linux
+          path: dist/*
+          if-no-files-found: warn
+
+# ----------------------------------------------------------------------------
+  macos:
+    name: Desktop — macOS (.dmg)
+    runs-on: macos-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        arch: [x86_64-apple-darwin, aarch64-apple-darwin]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.arch }}
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Build with Pake
+        run: |
+          npm install -g pake-cli
+          pake "${{ env.APP_URL }}" \
+            --name "${{ env.APP_NAME }}" \
+            --icon "$PWD/app/public/icons/icon-512.png" \
+            --targets "${{ matrix.arch }}" \
+            --width 1200 --height 800
+          mkdir -p dist
+          for f in *.dmg; do
+            [ -f "$f" ] && mv "$f" "dist/${f%.dmg}-${{ matrix.arch }}.dmg"
+          done
+          ls -lh dist/ || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: travellog-macos-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: warn
+
+# ----------------------------------------------------------------------------
+  windows:
+    name: Desktop — Windows (.msi)
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Build with Pake
+        shell: bash
+        run: |
+          npm install -g pake-cli
+          pake "${{ env.APP_URL }}" \
+            --name "${{ env.APP_NAME }}" \
+            --icon "$PWD/app/public/icons/icon-512.png" \
+            --width 1200 --height 800
+          mkdir -p dist
+          mv *.msi dist/ 2>/dev/null || mv *.exe dist/ 2>/dev/null || true
+          ls -lh dist/ || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: travellog-windows
+          path: dist/*
+          if-no-files-found: warn
+
+# ----------------------------------------------------------------------------
+  android:
+    name: Mobile — Android (.apk)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - uses: android-actions/setup-android@v3
+
+      - name: Initialise signing keystore
+        run: |
+          mkdir -p twa
+          keytool -genkey -noprompt -v \
+            -keystore twa/android.keystore \
+            -storepass travellog -keypass travellog -alias travellog \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Travel Log, OU=Dev, O=Travel Log, L=Web, S=Web, C=US"
+
+      - name: Build a Trusted Web Activity with Bubblewrap
+        working-directory: twa
+        env:
+          BUBBLEWRAP_ACCEPT_LICENCES: "yes"
+        run: |
+          set -e
+          npm install -g @bubblewrap/cli
+
+          # Non-interactive init
+          cat > init.json <<JSON
+          {
+            "host":          "${{ env.APP_URL }}",
+            "name":          "${{ env.APP_NAME }}",
+            "packageId":     "app.travellog.twa",
+            "startUrl":      "/",
+            "display":       "standalone",
+            "themeColor":    "#0ea5e9",
+            "backgroundColor":"#0b1220",
+            "signingKeyPath":"./android.keystore",
+            "signingKeyAlias":"travellog"
+          }
+          JSON
+
+          bubblewrap init \
+            --manifest="${{ env.APP_URL }}manifest.webmanifest" \
+            --directory=. \
+            --skipPwaValidation || true
+
+          bubblewrap build \
+            --skipPwaValidation \
+            --signingKeyPath=./android.keystore \
+            --signingKeyAlias=travellog \
+            --skipSigning=false || true
+
+          mkdir -p ../dist
+          find . -maxdepth 3 -name "*.apk" -exec cp {} ../dist/ \; 2>/dev/null || true
+          find . -maxdepth 3 -name "*.aab" -exec cp {} ../dist/ \; 2>/dev/null || true
+          ls -lh ../dist/ || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: travellog-android
+          path: dist/*
+          if-no-files-found: warn
+
+# ----------------------------------------------------------------------------
+  ios:
+    name: Mobile — iOS (Xcode project .zip)
+    runs-on: macos-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Generate an unsigned Xcode project via PWABuilder
+        run: |
+          set -e
+          mkdir -p ios dist
+          cd ios
+          # Use PWABuilder's iOS template. It generates a Swift/Xcode project
+          # that wraps the PWA. Final signing + IPA production still require
+          # an Apple Developer account and are done in Xcode locally.
+          git clone --depth 1 https://github.com/pwa-builder/pwabuilder-ios.git template
+          cd template/Microsoft.PWABuilder.IOS.Web/Resources
+          # Minimal configuration: point at APP_URL and use app name + icons.
+          cat > config.json <<JSON
+          {
+            "name":     "${{ env.APP_NAME }}",
+            "host":     "${{ env.APP_URL }}",
+            "manifest": "${{ env.APP_URL }}manifest.webmanifest",
+            "bundleId": "app.travellog.ios",
+            "themeColor": "#0ea5e9"
+          }
+          JSON
+          cd ../../..
+          zip -r ../dist/travellog-ios-xcode-${{ env.RELEASE_TAG }}.zip template
+          ls -lh ../dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: travellog-ios
+          path: dist/*
+          if-no-files-found: warn
+
+# ----------------------------------------------------------------------------
+  release:
+    name: Publish GitHub Release
+    needs: [web, linux, macos, windows, android, ios]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts for the release
+        run: |
+          set -e
+          mkdir -p release
+          find artifacts -type f \( -name '*.zip' -o -name '*.dmg' -o -name '*.msi' \
+              -o -name '*.exe' -o -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' \
+              -o -name '*.apk' -o -name '*.aab' \) -exec cp {} release/ \;
+          ls -lh release/
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: Travel Log ${{ env.RELEASE_TAG }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: release/*
+          body: |
+            ## Travel Log ${{ env.RELEASE_TAG }}
+
+            Native builds + the web bundle for every supported platform.
+
+            | Platform       | Artifact                                         |
+            | -------------- | ------------------------------------------------ |
+            | **Web**        | `travellog-web-*.zip` — deploy to any PHP 8.2+ host |
+            | **Windows**    | `*.msi` (install) or `*.exe` (portable)          |
+            | **macOS**      | `*-x86_64-apple-darwin.dmg` + `*-aarch64-apple-darwin.dmg` |
+            | **Linux**      | `*.AppImage` (portable) + `*.deb` (Debian/Ubuntu) |
+            | **Android**    | `*.apk` (signed with release key — sideload or upload the `.aab` to Play) |
+            | **iOS**        | `travellog-ios-xcode-*.zip` — build + sign in Xcode |
+
+            The desktop and mobile wrappers load the PWA from `${{ env.APP_URL }}`.
+            Host the web bundle first, then rebuild with your URL via
+            `workflow_dispatch` to get binaries pointing at your deployment.

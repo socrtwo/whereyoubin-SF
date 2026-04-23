@@ -90,6 +90,35 @@ php -S 127.0.0.1:8001
 - Extensions: `pdo`, `pdo_sqlite` *or* `pdo_mysql`, `mbstring`, `json`
 - Optional: `gd` + `curl` for the classic poster/map tools
 
+## Cutting a release
+
+The [`release.yml`](.github/workflows/release.yml) workflow builds signed/unsigned
+installers for every target and attaches them to a GitHub Release:
+
+| Target     | Runner            | Built with              | Artifact                 |
+| ---------- | ----------------- | ----------------------- | ------------------------ |
+| Web        | `ubuntu-latest`   | `zip`                   | `travellog-web-*.zip`    |
+| Windows    | `windows-latest`  | Pake (Tauri)            | `*.msi` / `*.exe`        |
+| macOS      | `macos-latest` ×2 | Pake — x64 + arm64      | `*-x86_64-apple-darwin.dmg`, `*-aarch64-apple-darwin.dmg` |
+| Linux      | `ubuntu-latest`   | Pake                    | `*.AppImage` + `*.deb`   |
+| Android    | `ubuntu-latest`   | Bubblewrap (TWA)        | `*.apk` (+ `*.aab` for Play) |
+| iOS        | `macos-latest`    | PWABuilder iOS template | `travellog-ios-xcode-*.zip` (build locally in Xcode) |
+
+Trigger it either way:
+
+```bash
+# Tag a release (creates a GitHub Release automatically)
+git tag v1.0.0 && git push origin v1.0.0
+
+# Or run it manually from GitHub → Actions → "Release" → Run workflow
+# (lets you override APP_URL without tagging)
+```
+
+Set the repository variable `APP_URL` (Settings → Secrets & variables →
+Actions → Variables) to the hosted URL of your PWA — the desktop and
+mobile wrappers load that URL at runtime. The web zip always contains
+the full PHP source regardless.
+
 ## Installing the app (all platforms)
 
 The app is a Progressive Web App, installable from a single URL:
