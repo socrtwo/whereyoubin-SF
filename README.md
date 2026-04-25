@@ -1,5 +1,10 @@
 # Where In the World Have You Been?
 
+<!--PAGES_LINK_BANNER-->
+> 🌐 **Live page:** [https://socrtwo.github.io/whereyoubin-SF/](https://socrtwo.github.io/whereyoubin-SF/)  
+> 📦 **Releases:** [github.com/socrtwo/whereyoubin-SF/releases](https://github.com/socrtwo/whereyoubin-SF/releases)
+<!--/PAGES_LINK_BANNER-->
+
 A PHP travel project with **two** tightly-integrated parts:
 
 1. **Classic clickable maps** (World, US, Canada, China, India, Africa, Europe) that color-code the countries you've visited and generate a shareable poster.
