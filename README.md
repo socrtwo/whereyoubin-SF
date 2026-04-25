@@ -1,9 +1,18 @@
-# Where In the World Have You Been?
+<!--MODERNIZED:v1-->
+# Whereyoubin
 
-<!--PAGES_LINK_BANNER-->
-> 🌐 **Live page:** [https://socrtwo.github.io/whereyoubin-SF/](https://socrtwo.github.io/whereyoubin-SF/)  
-> 📦 **Releases:** [github.com/socrtwo/whereyoubin-SF/releases](https://github.com/socrtwo/whereyoubin-SF/releases)
-<!--/PAGES_LINK_BANNER-->
+> Migrated from SourceForge via SF2GH Migrator
+
+[![Live page](https://img.shields.io/badge/live-page-ff2e93?style=for-the-badge)](https://socrtwo.github.io/whereyoubin-SF/)
+[![Releases](https://img.shields.io/github/v/release/socrtwo/whereyoubin-SF?style=for-the-badge&color=7c3aed)](https://github.com/socrtwo/whereyoubin-SF/releases)
+[![License](https://img.shields.io/github/license/socrtwo/whereyoubin-SF?style=for-the-badge&color=22d3ee)](https://github.com/socrtwo/whereyoubin-SF/blob/main/LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/socrtwo/whereyoubin-SF?style=for-the-badge&color=34d399)](https://github.com/socrtwo/whereyoubin-SF/commits)
+
+🌐 **Live:** https://socrtwo.github.io/whereyoubin-SF/  
+📦 **Downloads:** [Releases](https://github.com/socrtwo/whereyoubin-SF/releases)  
+📂 **Source:** [socrtwo/whereyoubin-SF](https://github.com/socrtwo/whereyoubin-SF)
+
+---
 
 A PHP travel project with **two** tightly-integrated parts:
 
@@ -283,3 +292,25 @@ This project was originally hosted on SourceForge and migrated to GitHub.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+## 📜 SourceForge heritage
+
+This project originated on **SourceForge** before being migrated to GitHub. The legacy SourceForge entry, if still available, can be searched at:
+
+🔗 https://sourceforge.net/projects/whereyoubin/
+
+The repository here at `socrtwo/whereyoubin-SF` is the canonical, actively-maintained home. All future updates, issue tracking, and releases happen on GitHub.
+
+## 🛠️ Contributing
+
+Issues and pull requests are welcome at [https://github.com/socrtwo/whereyoubin-SF/issues](https://github.com/socrtwo/whereyoubin-SF/issues).
+
+## 📝 License
+
+See the [LICENSE](https://github.com/socrtwo/whereyoubin-SF/blob/main/LICENSE) file in this repository. If no license file is present, the project is shared as-is for reference and personal use; please contact the maintainer for other use cases.
+
+---
+
+*Maintained by [@socrtwo](https://github.com/socrtwo)*
