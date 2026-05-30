@@ -336,9 +336,64 @@ jobs:
           if-no-files-found: warn
 
 # ----------------------------------------------------------------------------
+  chromeos:
+    name: ChromeOS (standalone PWA .zip)
+    runs-on: ubuntu-latest
+    # ChromeOS treats PWAs as first-class apps. This packages the same
+    # on-device standalone client (app/standalone) the desktop/mobile wrappers
+    # load, with maps-data.js regenerated exactly as the `pages` job does, so a
+    # Chromebook can install it from Chrome or run it fully offline.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate maps-data.js from Maps.php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, json
+      - run: |
+          php -r 'require "app/src/Maps.php";
+                  $out = "// Auto-generated from app/src/Maps.php.\nexport const MAPS = " . json_encode(TravelLog\Maps::all(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . ";\n";
+                  file_put_contents("app/standalone/maps-data.js", $out);'
+
+      - name: Pack the ChromeOS PWA bundle
+        run: |
+          set -e
+          mkdir -p dist _chromeos
+          cp -r app/standalone/. _chromeos/
+          cat > _chromeos/INSTALL-CHROMEOS.md <<'MD'
+          # Travel Log — ChromeOS
+
+          ChromeOS treats PWAs as first-class apps; no APK or extension is needed.
+
+          ## Install (recommended)
+          1. Open the hosted app in Chrome on your Chromebook
+             (STANDALONE_URL, e.g. https://socrtwo.github.io/whereyoubin-SF/).
+          2. Click the install icon in the address bar (or menu -> Install).
+          3. It appears in your launcher and works offline (service worker +
+             IndexedDB). All regional maps are built in — no account needed.
+
+          ## Run from this bundle (offline)
+          1. Unzip into Files -> My files.
+          2. Open index.html in Chrome.
+
+          Chromebooks with Play Store support can alternatively sideload the
+          Android APK from this same release.
+          MD
+          BUNDLE="travellog-chromeos-${{ env.RELEASE_TAG }}.zip"
+          (cd _chromeos && zip -r "../dist/$BUNDLE" .)
+          ls -lh dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: travellog-chromeos
+          path: dist/*
+          if-no-files-found: warn
+
+# ----------------------------------------------------------------------------
   release:
     name: Publish GitHub Release
-    needs: [web, pages, linux, macos, windows, android, ios]
+    needs: [web, pages, linux, macos, windows, android, ios, chromeos]
     if: ${{ startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '' && github.event.inputs.tag != 'nightly') }}
     runs-on: ubuntu-latest
     steps:
@@ -391,3 +446,4 @@ jobs:
             | **Linux**   | `*.AppImage` (portable) + `*.deb` (Debian/Ubuntu)        |
             | **Android** | `*.apk` + `*.aab` (Play)                                 |
             | **iOS**     | `travellog-ios-xcode-*.zip` (build + sign in Xcode)      |
+            | **ChromeOS**| `travellog-chromeos-*.zip` (install the PWA from Chrome) |
