@@ -391,9 +391,68 @@ jobs:
           if-no-files-found: warn
 
 # ----------------------------------------------------------------------------
+  android-pwa:
+    name: Android (standalone PWA .zip)
+    runs-on: ubuntu-latest
+    # Guaranteed Android asset: the same on-device standalone client packaged
+    # as an installable PWA bundle. The Bubblewrap TWA job above is
+    # best-effort (continue-on-error); this zip always ships so the release
+    # never lacks an Android artifact.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate maps-data.js from Maps.php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, json
+      - run: |
+          php -r 'require "app/src/Maps.php";
+                  $out = "// Auto-generated from app/src/Maps.php.\nexport const MAPS = " . json_encode(TravelLog\Maps::all(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . ";\n";
+                  file_put_contents("app/standalone/maps-data.js", $out);'
+
+      - name: Pack the Android PWA bundle
+        run: |
+          set -e
+          mkdir -p dist _android
+          cp -r app/standalone/. _android/
+          printf '%s\n' \
+            '# Travel Log — Android' \
+            '' \
+            'Travel Log installs on Android as a PWA — no Play Store needed.' \
+            '' \
+            '## Install (recommended)' \
+            '1. Open the hosted app in Chrome on your Android device:' \
+            "   ${STANDALONE_URL}" \
+            '2. Tap the Chrome menu (3 dots) -> "Install app"' \
+            '   (or "Add to Home screen").' \
+            '3. Travel Log appears on your home screen and works offline' \
+            '   (service worker + IndexedDB). All regional maps are built in;' \
+            '   no account needed.' \
+            '' \
+            '## Alternative: native APK' \
+            'If this release also carries an .apk asset (built best-effort with' \
+            'Bubblewrap), you can sideload it instead: enable "Install unknown' \
+            'apps" for your browser or file manager, then open the .apk.' \
+            '' \
+            '## Run from this bundle (advanced)' \
+            'The files in this zip are the same on-device client. Serve them' \
+            'from any HTTPS static host and install from Chrome as above.' \
+            > _android/INSTALL-ANDROID.md
+          BUNDLE="travellog-android-${{ env.RELEASE_TAG }}.zip"
+          (cd _android && zip -r "../dist/$BUNDLE" .)
+          ls -lh dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: travellog-android-pwa
+          path: dist/*
+          if-no-files-found: warn
+
+# ----------------------------------------------------------------------------
   release:
     name: Publish GitHub Release
-    needs: [web, pages, linux, macos, windows, android, ios, chromeos]
+    needs: [web, pages, linux, macos, windows, android, android-pwa, ios, chromeos]
     if: ${{ startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '' && github.event.inputs.tag != 'nightly') }}
     runs-on: ubuntu-latest
     steps:
@@ -444,6 +503,6 @@ jobs:
             | **Windows** | `*.msi` (install) or `*.exe` (portable)                  |
             | **macOS**   | `*-x86_64-apple-darwin.dmg` + `*-aarch64-apple-darwin.dmg` |
             | **Linux**   | `*.AppImage` (portable) + `*.deb` (Debian/Ubuntu)        |
-            | **Android** | `*.apk` + `*.aab` (Play)                                 |
+            | **Android** | `travellog-android-*.zip` (install the PWA from Chrome); `*.apk` / `*.aab` when the TWA build succeeds |
             | **iOS**     | `travellog-ios-xcode-*.zip` (build + sign in Xcode)      |
             | **ChromeOS**| `travellog-chromeos-*.zip` (install the PWA from Chrome) |
