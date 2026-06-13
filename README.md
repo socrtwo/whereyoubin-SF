@@ -178,6 +178,18 @@ Actions → Variables) to the hosted URL of your PWA — the desktop and
 mobile wrappers load that URL at runtime. The web zip always contains
 the full PHP source regardless.
 
+## Code signing
+
+Windows release `.exe` binaries are signed with **Azure Trusted Signing** via
+GitHub Actions OIDC federated credentials — no client secrets in the repo and
+no certificate ever lands on the CI runner. The signing step in the `windows`
+job of [`release.yml`](.github/workflows/release.yml) is a graceful no-op
+(`if: vars.AZURE_TENANT_ID != ''`) until the Azure repo Variables are set, so
+unsigned builds still produce a working `.exe`. macOS and mobile artifacts
+remain unsigned. Setup and verification steps live in [`SIGNING.md`](SIGNING.md)
+(run `scripts/setup-azure-signing.sh` once in Azure Cloud Shell, then use the
+**Verify OIDC** workflow to confirm federation without consuming signing quota).
+
 ## Two product lines
 
 Travel Log ships in two flavours from the same repo — pick whichever
